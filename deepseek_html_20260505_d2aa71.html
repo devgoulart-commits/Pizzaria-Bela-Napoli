@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Bela Napoli · Sistema Profissional</title>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; background: #f5f2ed; }
+
+    /* Splash Screen */
+    .splash {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 30% 20%, #c24e2c, #6b1f0c);
+      display: flex; justify-content: center; align-items: center; flex-direction: column;
+      z-index: 2000; transition: opacity 0.6s ease; color: white; text-align: center;
+    }
+    .splash .logo-icon { font-size: 5rem; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.2)); animation: float 1.5s infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } }
+    .splash h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-top: 1rem; }
+    .loader { width: 45px; height: 45px; border: 3px solid rgba(255,255,240,0.3); border-top: 3px solid #ffc857; border-radius: 50%; animation: spin 0.9s linear infinite; margin: 1.8rem 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Login Premium Fullscreen */
+    .login-full { position: relative; width: 100%; height: 100vh; background: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format') center/cover no-repeat; display: flex; align-items: center; justify-content: center; }
+    .login-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.85) 100%); }
+    .login-card { position: relative; z-index: 2; background: rgba(255,255,255,0.97); backdrop-filter: blur(10px); border-radius: 2.5rem; padding: 2rem 2rem 2.5rem; width: 460px; text-align: center; box-shadow: 0 30px 50px rgba(0,0,0,0.3); transition: 0.2s; }
+    .logo-no-bg { margin-bottom: 1.2rem; }
+    .logo-no-bg h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 900; color: #8b2c1d; letter-spacing: -0.5px; }
+    .logo-no-bg .sub { font-size: 0.75rem; letter-spacing: 3px; color: #b87a5a; text-transform: uppercase; }
+    .logo-no-bg .since { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: #c2410c; margin-top: 6px; border-top: 1px solid #e2d6cc; display: inline-block; padding-top: 6px; }
+    .avatar-icon { background: #fae9df; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .avatar-icon i { font-size: 2rem; color: #c2410c; }
+    .input-group { margin-bottom: 1.2rem; text-align: left; position: relative; }
+    .input-group i { position: absolute; left: 18px; top: 15px; color: #bf8970; font-size: 1rem; }
+    input, select { width: 100%; padding: 14px 16px 14px 48px; border-radius: 60px; border: 1px solid #e2d6cc; background: white; font-size: 0.95rem; outline: none; }
+    input:focus, select:focus { border-color: #c2410c; box-shadow: 0 0 0 3px rgba(194,65,12,0.15); }
+    .btn-login { background: #c2410c; width: 100%; padding: 14px; border: none; border-radius: 60px; color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-login:hover { background: #9b3408; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(194,65,12,0.4); }
+    .info-demo { margin-top: 1.5rem; font-size: 0.7rem; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 60px; color: #5a4a3a; }
+
+    /* App principal */
+    .app { display: none; flex-direction: column; height: 100vh; background: #f8f6f2; }
+    .navbar { background: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ece3db; }
+    .user-greeting { background: #fef3e8; padding: 6px 20px; border-radius: 40px; font-size: 0.85rem; font-weight: 500; }
+    .logout-btn { background: none; border: 1px solid #e0d5ca; padding: 6px 20px; border-radius: 40px; cursor: pointer; transition: 0.2s; }
+    .logout-btn:hover { background: #f3ede7; border-color: #c2410c; }
+    .dashboard { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 260px; background: white; border-right: 1px solid #ede6dd; padding: 1.5rem 0; overflow-y: auto; }
+    .nav-item { width: 100%; background: transparent; border: none; display: flex; align-items: center; gap: 14px; padding: 12px 24px; font-size: 0.9rem; font-weight: 500; color: #4a5b64; cursor: pointer; transition: 0.2s; }
+    .nav-item.active { background: #fef4ec; color: #c2410c; border-left: 3px solid #e67e22; }
+    .main-area { flex: 1; padding: 1.5rem; overflow-y: auto; }
+    .card { background: white; border-radius: 28px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 6px 14px rgba(0,0,0,0.02); border: 1px solid #f0e9e1; }
+    .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
+    .menu-item { background: #fefaf6; border-radius: 20px; padding: 1rem; text-align: center; transition: 0.15s; border: 1px solid #f1e6dc; cursor: pointer; }
+    .menu-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -8px rgba(0,0,0,0.1); }
+    .status-badge { display: inline-block; padding: 4px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; }
+    .badge-pendente { background: #fff0db; color: #b45a2b; }
+    .badge-preparando { background: #e4f0fa; color: #1f6392; }
+    .badge-pronto { background: #e3f7ec; color: #2b6e3c; }
+    .btn-sm { background: #c2410c; border: none; padding: 6px 16px; border-radius: 40px; color: white; font-weight: 500; font-size: 0.75rem; cursor: pointer; display: inline-block; margin: 4px 4px 0 0; }
+    .btn-outline { background: transparent; border: 1px solid #c2410c; color: #c2410c; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ede6dd; }
+    footer { text-align: center; font-size: 0.7rem; background: #f1ede7; padding: 0.5rem; color: #7b6e5d; }
+    @media (max-width: 700px) {
+      .sidebar { width: 100%; display: flex; overflow-x: auto; padding: 0.5rem; border-bottom: 1px solid #ede6dd; border-right: none; }
+      .nav-item { white-space: nowrap; }
+      .dashboard { flex-direction: column; }
+      .login-card { width: 90%; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="splash">
+  <div class="logo-icon"><i class="fas fa-pizza-slice"></i></div>
+  <h1>Bela Napoli</h1>
+  <p style="font-weight: 300;">sistema inteligente - tradizione italiana</p>
+  <div class="loader"></div>
+  <p style="font-size: 0.7rem;">FREDTECH SYSTEMS™</p>
+</div>
+
+<!-- LOGIN -->
+<div id="loginContainer" style="display: none;">
+  <div class="login-full">
+    <div class="login-overlay"></div>
+    <div class="login-card">
+      <div class="logo-no-bg">
+        <h1>BELA NAPOLI</h1>
+        <div class="sub">TRATTORIA & PIZZERIA</div>
+        <div class="since">✦ DAL 1985 ✦</div>
+      </div>
+      <div class="avatar-icon"><i class="fas fa-utensils"></i></div>
+      <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUser" placeholder="Usuário ou nome" autocomplete="off"></div>
+      <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPass" placeholder="Senha (deixe vazio para cliente)"></div>
+      <select id="perfilSelect">
+        <option value="cliente">👤 Cliente · Autoatendimento</option>
+        <option value="admin">👑 Administrador</option>
+        <option value="garcom">👨‍🍳 Garçom</option>
+        <option value="cozinha">🍳 Cozinha</option>
+      </select>
+      <button class="btn-login" id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+      <div class="info-demo"><i class="fas fa-info-circle"></i> Admin: admin/123 · Garçom: garcom/123 · Cozinha: cozinha/123<br>Cliente: digite seu nome</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app">
+  <div class="navbar">
+    <div><i class="fas fa-pizza-slice" style="color:#c2410c;"></i> <strong>Bela Napoli</strong></div>
+    <div class="user-greeting" id="userGreeting"></div>
+    <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+  </div>
+  <div class="dashboard">
+    <div class="sidebar" id="sidebarNav"></div>
+    <div class="main-area" id="mainContent"></div>
+  </div>
+  <footer>© 2026 FREDTECH SYSTEMS — Bela Napoli Trattoria & Pizzeria · Todos os direitos reservados ™</footer>
+</div>
+
+<script>
+  // ======================== DADOS INICIAIS ========================
+  let db = {
+    usuarios: [
+      { id: 1, nome: "Administrador", perfil: "admin", usuario: "admin", senha: "123" },
+      { id: 2, nome: "Carlos Garçom", perfil: "garcom", usuario: "garcom", senha: "123" },
+      { id: 3, nome: "Equipe Cozinha", perfil: "cozinha", usuario: "cozinha", senha: "123" }
+    ],
+    produtos: [
+      { id: 1, nome: "Margherita", preco: 42.9, categoria: "pizza", estoque: 20 },
+      { id: 2, nome: "Pepperoni", preco: 54.9, categoria: "pizza", estoque: 15 },
+      { id: 3, nome: "Coca-Cola 2L", preco: 12.0, categoria: "bebida", estoque: 30 },
+      { id: 4, nome: "Tiramisu", preco: 24.9, categoria: "sobremesa", estoque: 8 },
+      { id: 5, nome: "Frango Catupiry", preco: 49.9, categoria: "pizza", estoque: 12 }
+    ],
+    mesas: [
+      { id:1, numero:1, status:"livre" }, { id:2, numero:2, status:"livre" },
+      { id:3, numero:3, status:"livre" }, { id:4, numero:4, status:"livre" },
+      { id:5, numero:5, status:"livre" }
+    ],
+    pedidos: [],
+    pagamentos: []
+  };
+  let nextIds = { pedido: 1, pagamento: 1, produto: 6, mesa: 6, usuario: 4 };
+  let sessao = { perfil: null, nome: null, clienteNome: null };
+  let carrinhoCliente = [];
+
+  function salvarDB() { localStorage.setItem("belaNapoliFinal", JSON.stringify({ db, nextIds })); }
+  function carregarDB() {
+    const raw = localStorage.getItem("belaNapoliFinal");
+    if (!raw) { inicializarDemo(); return; }
+    try { const data = JSON.parse(raw); db = data.db; nextIds = data.nextIds; } catch(e) { inicializarDemo(); }
+  }
+  function inicializarDemo() { db.pedidos = []; db.pagamentos = []; nextIds.pedido = 1; nextIds.pagamento = 1; salvarDB(); }
+
+  // ======================== REGRAS ========================
+  function criarPedido(mesaId, clienteNome, itens) {
+    const total = itens.reduce((s,i)=> s + (i.preco * i.qtd), 0);
+    const novo = {
+      id: nextIds.pedido++,
+      mesaId: mesaId || null,
+      clienteNome: clienteNome || "Cliente",
+      itens: itens.map(i => ({ produtoId: i.id, nome: i.nome, preco: i.preco, quantidade: i.qtd, subtotal: i.preco * i.qtd })),
+      statusPedido: "aberto",
+      statusCozinha: "pendente",
+      total: total,
+      data: new Date().toISOString()
+    };
+    db.pedidos.push(novo);
+    if (mesaId) { const mesa = db.mesas.find(m => m.id == mesaId); if (mesa) mesa.status = "ocupada"; }
+    salvarDB();
+    return novo;
+  }
+  function atualizarStatusCozinha(pedidoId, novoStatus) {
+    const ped = db.pedidos.find(p => p.id == pedidoId);
+    if (ped) { ped.statusCozinha = novoStatus; salvarDB(); }
+  }
+  function fecharPedido(pedidoId) {
+    const ped = db.pedidos.find(p => p.id == pedidoId);
+    if (ped && ped.statusPedido === "aberto") { ped.statusPedido = "fechado"; salvarDB(); }
+  }
+  function pagarPedido(pedidoId, metodo) {
+    const ped = db.pedidos.find(p => p.id == pedidoId);
+    if (ped && ped.statusPedido === "fechado") {
+      ped.statusPedido = "pago";
+      db.pagamentos.push({ id: nextIds.pagamento++, pedidoId, valor: ped.total, metodo, data: new Date().toISOString() });
+      if (ped.mesaId) { const mesa = db.mesas.find(m => m.id == ped.mesaId); if(mesa) mesa.status = "livre"; }
+      salvarDB();
+    }
+  }
+
+  // ======================== RENDER PRINCIPAL ========================
+  let currentSub = "dashboard";
+  function renderApp() {
+    const sidebar = document.getElementById("sidebarNav");
+    const content = document.getElementById("mainContent");
+    const perfil = sessao.perfil;
+    document.getElementById("userGreeting").innerHTML = `<i class="fas fa-user-circle"></i> ${sessao.nome || sessao.clienteNome}`;
+
+    if (perfil === "admin") {
+      sidebar.innerHTML = `
+        <button class="nav-item" data-sub="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+        <button class="nav-item" data-sub="produtos"><i class="fas fa-box"></i> Produtos</button>
+        <button class="nav-item" data-sub="mesas"><i class="fas fa-chair"></i> Mesas</button>
+        <button class="nav-item" data-sub="usuarios"><i class="fas fa-users"></i> Usuários</button>
+        <button class="nav-item" data-sub="relatorios"><i class="fas fa-file-invoice-dollar"></i> Relatórios</button>`;
+      if (currentSub === "dashboard") renderAdminDashboard(content);
+      else if (currentSub === "produtos") renderAdminProdutos(content);
+      else if (currentSub === "mesas") renderAdminMesas(content);
+      else if (currentSub === "usuarios") renderAdminUsuarios(content);
+      else if (currentSub === "relatorios") renderAdminRelatorios(content);
+    }
+    else if (perfil === "garcom") {
+      sidebar.innerHTML = `
+        <button class="nav-item" data-sub="pedidos"><i class="fas fa-clipboard-list"></i> Pedidos</button>
+        <button class="nav-item" data-sub="mesas"><i class="fas fa-table"></i> Mesas</button>
+        <button class="nav-item" data-sub="fechar"><i class="fas fa-coins"></i> Fechar Contas</button>`;
+      if (currentSub === "pedidos") renderGarcomPedidos(content);
+      else if (currentSub === "mesas") renderGarcomMesas(content);
+      else if (currentSub === "fechar") renderGarcomFechar(content);
+    }
+    else if (perfil === "cozinha") {
+      sidebar.innerHTML = `<button class="nav-item" data-sub="producao"><i class="fas fa-utensils"></i> Produção</button>`;
+      renderCozinhaProducao(content);
+      currentSub = "producao";
+    }
+    else if (perfil === "cliente") {
+      sidebar.innerHTML = `
+        <button class="nav-item" data-sub="cardapio"><i class="fas fa-pizza-slice"></i> Cardápio</button>
+        <button class="nav-item" data-sub="meuspedidos"><i class="fas fa-truck"></i> Meus Pedidos</button>`;
+      if (currentSub === "cardapio") renderClienteCardapio(content);
+      else if (currentSub === "meuspedidos") renderClientePedidos(content);
+    }
+
+    document.querySelectorAll(".nav-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentSub = btn.dataset.sub;
+        renderApp();
+      });
+    });
+    const active = Array.from(document.querySelectorAll(".nav-item")).find(b => b.dataset.sub === currentSub);
+    if (active) active.classList.add("active");
+  }
+
+  // ======================== ADMIN ========================
+  function renderAdminDashboard(container) {
+    const hoje = db.pagamentos.filter(p => new Date(p.data).toDateString() === new Date().toDateString()).reduce((s,p)=>s+p.valor,0);
+    container.innerHTML = `<div class="card"><h3>📊 Painel</h3><div style="display:flex; gap:1rem; flex-wrap:wrap;"><div style="background:#fef1e6; border-radius:20px; padding:1rem; flex:1;"><strong>Pedidos</strong><br><span style="font-size:2rem;">${db.pedidos.length}</span></div><div style="background:#eef3fa; border-radius:20px; padding:1rem; flex:1;"><strong>Faturamento Hoje</strong><br><span style="font-size:2rem;">R$ ${hoje.toFixed(2)}</span></div><div style="background:#e8f3e8; border-radius:20px; padding:1rem; flex:1;"><strong>Produtos</strong><br><span style="font-size:2rem;">${db.produtos.length}</span></div></div></div>`;
+  }
+  function renderAdminProdutos(container) {
+    let html = `<div class="card"><h3>📦 Produtos</h3><button class="btn-sm" id="novoProdutoBtn">+ Novo</button><table><thead><tr><th>ID</th><th>Nome</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>`;
+    db.produtos.forEach(p => {
+      html += `<tr><td>${p.id}</td><td>${p.nome}</td><td>R$ ${p.preco.toFixed(2)}</td><td>${p.estoque}</td><td><button class="btn-sm btn-outline" data-id="${p.id}" data-addstock>+Estoque</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+    document.querySelectorAll("[data-addstock]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        let id = parseInt(btn.dataset.id);
+        let qtd = prompt("Quantidade a adicionar:");
+        if(qtd) { let prod = db.produtos.find(p=>p.id==id); if(prod) prod.estoque += parseInt(qtd); salvarDB(); renderAdminProdutos(container); }
+      });
+    });
+    document.getElementById("novoProdutoBtn")?.addEventListener("click", () => {
+      let nome = prompt("Nome:"); let preco = parseFloat(prompt("Preço:")); let estoque = parseInt(prompt("Estoque inicial:"));
+      if(nome && preco) { let nid = nextIds.produto++; db.produtos.push({id:nid, nome, preco, categoria:"pizza", estoque:estoque||0}); salvarDB(); renderAdminProdutos(container); }
+    });
+  }
+  function renderAdminMesas(container) {
+    let html = `<div class="card"><h3>🍽️ Mesas</h3><button class="btn-sm" id="novaMesaBtn">+ Nova Mesa</button><div class="grid-cards">`;
+    db.mesas.forEach(m => {
+      html += `<div class="menu-item"><i class="fas fa-chair"></i> Mesa ${m.numero}<br><span class="status-badge">${m.status}</span><br><button class="btn-sm btn-outline" data-id="${m.id}" data-delmesa>Excluir</button></div>`;
+    });
+    html += `</div></div>`;
+    container.innerHTML = html;
+    document.querySelectorAll("[data-delmesa]").forEach(btn => {
+      btn.addEventListener("click", () => { db.mesas = db.mesas.filter(m => m.id != btn.dataset.id); salvarDB(); renderAdminMesas(container); });
+    });
+    document.getElementById("novaMesaBtn")?.addEventListener("click", () => {
+      let num = prompt("Número da mesa:"); if(num && !isNaN(num)) { db.mesas.push({id:nextIds.mesa++, numero:parseInt(num), status:"livre"}); salvarDB(); renderAdminMesas(container); }
+    });
+  }
+  function renderAdminUsuarios(container) {
+    let html = `<div class="card"><h3>👥 Usuários</h3><button class="btn-sm" id="novoUserBtn">+ Criar</button><table><thead><tr><th>Nome</th><th>Perfil</th><th>Login</th><th>Ação</th></tr></thead><tbody>`;
+    db.usuarios.forEach(u => {
+      html += `<tr><td>${u.nome}</td><td>${u.perfil}</td><td>${u.usuario}</td><td><button class="btn-sm btn-outline" data-id="${u.id}" data-deluser>Remover</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+    document.querySelectorAll("[data-deluser]").forEach(btn => {
+      btn.addEventListener("click", () => { db.usuarios = db.usuarios.filter(u => u.id != btn.dataset.id); salvarDB(); renderAdminUsuarios(container); });
+    });
+    document.getElementById("novoUserBtn")?.addEventListener("click", () => {
+      let nome = prompt("Nome:"); let perfil = prompt("Perfil (admin/garcom/cozinha):"); let usuario = prompt("Login:"); let senha = prompt("Senha:");
+      if(nome && perfil) { let nid = nextIds.usuario++; db.usuarios.push({id:nid, nome, perfil, usuario, senha}); salvarDB(); renderAdminUsuarios(container); }
+    });
+  }
+  function renderAdminRelatorios(container) {
+    let total = db.pagamentos.reduce((s,p)=>s+p.valor,0);
+    container.innerHTML = `<div class="card"><h3>📈 Financeiro</h3><p>Faturamento total: R$ ${total.toFixed(2)}</p><p>Pedidos realizados: ${db.pedidos.length}</p><h4>Últimos pagamentos</h4><table><thead><tr><th>Pedido</th><th>Valor</th><th>Método</th><th>Data</th></tr></thead><tbody>${db.pagamentos.slice(-8).map(p=>`<tr><td>${p.pedidoId}</td><td>R$ ${p.valor.toFixed(2)}</td><td>${p.metodo}</td><td>${new Date(p.data).toLocaleString()}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  // ======================== GARÇOM ========================
+  function renderGarcomPedidos(container) {
+    let ativos = db.pedidos.filter(p => p.statusPedido !== "pago");
+    let html = `<div class="card"><h3>📋 Pedidos Ativos</h3><div id="pedidosGarcom"></div></div>`;
+    container.innerHTML = html;
+    const div = document.getElementById("pedidosGarcom");
+    if(ativos.length === 0) div.innerHTML = "<p>Nenhum pedido ativo.</p>";
+    ativos.forEach(ped => {
+      const card = document.createElement("div"); card.className = "card"; card.style.marginBottom = "1rem";
+      card.innerHTML = `<strong>Pedido #${ped.id}</strong> - ${ped.clienteNome} (Mesa ${ped.mesaId || "balcão"})<br>Itens: ${ped.itens.map(i=>`${i.nome} x${i.quantidade}`).join(", ")}<br>
+        Cozinha: <span class="status-badge badge-${ped.statusCozinha}">${ped.statusCozinha}</span><br>
+        Total: R$ ${ped.total.toFixed(2)}<br>
+        <button class="btn-sm" data-id="${ped.id}" data-fecharPedido>Fechar Conta</button>
+        ${ped.statusCozinha !== "pronto" ? `<button class="btn-sm btn-outline" data-id="${ped.id}" data-marcarPronto>Marcar Pronto</button>` : ""}`;
+      div.appendChild(card);
+    });
+    document.querySelectorAll("[data-fecharPedido]").forEach(btn => btn.addEventListener("click", () => { fecharPedido(parseInt(btn.dataset.id)); renderGarcomPedidos(container); }));
+    document.querySelectorAll("[data-marcarPronto]").forEach(btn => btn.addEventListener("click", () => { atualizarStatusCozinha(parseInt(btn.dataset.id), "pronto"); renderGarcomPedidos(container); }));
+  }
+  function renderGarcomMesas(container) {
+    let html = `<div class="card"><h3>🍽️ Mesas</h3><div class="grid-cards" id="gridMesasGarcom"></div></div>`;
+    container.innerHTML = html;
+    const grid = document.getElementById("gridMesasGarcom");
+    db.mesas.forEach(m => {
+      const card = document.createElement("div"); card.className = "menu-item";
+      card.innerHTML = `<i class="fas fa-table"></i> Mesa ${m.numero}<br><span class="status-badge">${m.status}</span><br><button class="btn-sm" data-id="${m.id}" data-abrirPedidoMesa>Novo Pedido</button>`;
+      grid.appendChild(card);
+    });
+    document.querySelectorAll("[data-abrirPedidoMesa]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        let mesaId = parseInt(btn.dataset.id); let nome = prompt("Nome do cliente:"); if(nome) { criarPedido(mesaId, nome, []); renderGarcomMesas(container); }
+      });
+    });
+  }
+  function renderGarcomFechar(container) {
+    let fechados = db.pedidos.filter(p => p.statusPedido === "fechado");
+    let html = `<div class="card"><h3>💳 Contas a Pagar</h3><div id="contasPagar"></div></div>`;
+    container.innerHTML = html;
+    const div = document.getElementById("contasPagar");
+    if(fechados.length === 0) div.innerHTML = "<p>Nenhuma conta pendente.</p>";
+    fechados.forEach(ped => {
+      const box = document.createElement("div"); box.className = "card"; box.style.marginBottom = "1rem";
+      box.innerHTML = `<strong>Pedido #${ped.id}</strong> - ${ped.clienteNome} - Total R$ ${ped.total.toFixed(2)}<br>
+        <button class="btn-sm" data-id="${ped.id}" data-metodo="dinheiro">Dinheiro</button>
+        <button class="btn-sm" data-id="${ped.id}" data-metodo="cartao">Cartão</button>
+        <button class="btn-sm" data-id="${ped.id}" data-metodo="pix">Pix</button>`;
+      div.appendChild(box);
+    });
+    document.querySelectorAll("[data-metodo]").forEach(btn => {
+      btn.addEventListener("click", () => { pagarPedido(parseInt(btn.dataset.id), btn.dataset.metodo); renderGarcomFechar(container); });
+    });
+  }
+
+  // ======================== COZINHA ========================
+  function renderCozinhaProducao(container) {
+    let fila = db.pedidos.filter(p => p.statusCozinha !== "pronto" && p.statusPedido !== "pago");
+    let html = `<div class="card"><h3>🍳 Produção</h3><div id="filaCozinha"></div></div>`;
+    container.innerHTML = html;
+    const div = document.getElementById("filaCozinha");
+    if(fila.length === 0) div.innerHTML = "<p>Nenhum pedido na cozinha.</p>";
+    fila.forEach(ped => {
+      const bloco = document.createElement("div"); bloco.className = "card";
+      bloco.innerHTML = `<strong>Pedido #${ped.id}</strong> - ${ped.clienteNome}<br>Itens: ${ped.itens.map(i=>`${i.nome} x${i.quantidade}`).join(", ")}<br>Status: ${ped.statusCozinha}<br>
+        ${ped.statusCozinha === "pendente" ? `<button class="btn-sm" data-id="${ped.id}" data-status="preparando">Iniciar Preparo</button>` : ""}
+        ${ped.statusCozinha === "preparando" ? `<button class="btn-sm" data-id="${ped.id}" data-status="pronto">Finalizar</button>` : ""}`;
+      div.appendChild(bloco);
+    });
+    document.querySelectorAll("[data-status]").forEach(btn => {
+      btn.addEventListener("click", () => { atualizarStatusCozinha(parseInt(btn.dataset.id), btn.dataset.status); renderCozinhaProducao(container); });
+    });
+  }
+
+  // ======================== CLIENTE ========================
+  function renderClienteCardapio(container) {
+    let html = `<div class="card"><h3>🍕 Cardápio</h3><div class="grid-cards" id="cardapioGrid"></div></div>
+      <div class="card"><h3>🛒 Carrinho</h3><div id="carrinhoArea"></div><button class="btn-sm" id="btnFinalizarPedido">Finalizar Pedido</button></div>`;
+    container.innerHTML = html;
+    const grid = document.getElementById("cardapioGrid");
+    db.produtos.forEach(prod => {
+      const itemDiv = document.createElement("div"); itemDiv.className = "menu-item";
+      itemDiv.innerHTML = `<strong>${prod.nome}</strong><br>R$ ${prod.preco.toFixed(2)}<br><button class="btn-sm" data-prod='${JSON.stringify(prod)}'>Adicionar</button>`;
+      grid.appendChild(itemDiv);
+    });
+    document.querySelectorAll("[data-prod]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const prod = JSON.parse(btn.dataset.prod);
+        let idx = carrinhoCliente.findIndex(i => i.id == prod.id);
+        if(idx !== -1) carrinhoCliente[idx].qtd++;
+        else carrinhoCliente.push({ id: prod.id, nome: prod.nome, preco: prod.preco, qtd: 1 });
+        atualizarCarrinho();
+      });
+    });
+    atualizarCarrinho();
+    document.getElementById("btnFinalizarPedido")?.addEventListener("click", () => {
+      if(carrinhoCliente.length === 0) { alert("Adicione itens ao carrinho"); return; }
+      if(!sessao.clienteNome) sessao.clienteNome = prompt("Digite seu nome:") || "Cliente";
+      criarPedido(null, sessao.clienteNome, carrinhoCliente);
+      carrinhoCliente = [];
+      atualizarCarrinho();
+      alert("Pedido enviado para a cozinha!");
+      renderClienteCardapio(container);
+    });
+  }
+  function atualizarCarrinho() {
+    const div = document.getElementById("carrinhoArea");
+    if(!div) return;
+    if(carrinhoCliente.length === 0) { div.innerHTML = "<p>Carrinho vazio</p>"; return; }
+    let total = 0;
+    let ul = "<ul style='list-style:none;'>";
+    carrinhoCliente.forEach((item, idx) => {
+      total += item.preco * item.qtd;
+      ul += `<li>${item.nome} x${item.qtd} = R$ ${(item.preco * item.qtd).toFixed(2)} <button class="btn-sm btn-outline" data-idx="${idx}">Remover</button></li>`;
+    });
+    ul += `</ul><strong>Total: R$ ${total.toFixed(2)}</strong>`;
+    div.innerHTML = ul;
+    document.querySelectorAll("[data-idx]").forEach(btn => {
+      btn.addEventListener("click", () => { let idx = parseInt(btn.dataset.idx); carrinhoCliente.splice(idx,1); atualizarCarrinho(); });
+    });
+  }
+  function renderClientePedidos(container) {
+    let meus = db.pedidos.filter(p => p.clienteNome === sessao.clienteNome && p.statusPedido !== "pago");
+    let html = `<div class="card"><h3>📦 Meus Pedidos</h3><div id="meusPedidosList"></div></div>`;
+    container.innerHTML = html;
+    const div = document.getElementById("meusPedidosList");
+    if(meus.length === 0) { div.innerHTML = "<p>Nenhum pedido ativo.</p>"; return; }
+    meus.forEach(ped => {
+      const card = document.createElement("div"); card.className = "card";
+      card.innerHTML = `<strong>Pedido #${ped.id}</strong><br>Status: <span class="status-badge badge-${ped.statusCozinha}">${ped.statusCozinha}</span><br>Itens: ${ped.itens.map(i=>`${i.nome} x${i.quantidade}`).join(", ")}<br>Total: R$ ${ped.total.toFixed(2)}<br>${ped.statusPedido === "fechado" ? `<button class="btn-sm" data-id="${ped.id}" data-pagarCliente>Pagar Agora</button>` : ""}`;
+      div.appendChild(card);
+    });
+    document.querySelectorAll("[data-pagarCliente]").forEach(btn => {
+      btn.addEventListener("click", () => { let metodo = prompt("Método (dinheiro/cartao/pix)"); if(metodo) pagarPedido(parseInt(btn.dataset.id), metodo); renderClientePedidos(container); });
+    });
+  }
+
+  // ======================== LOGIN E INICIALIZAÇÃO ========================
+  function fazerLogin(usuario, senha, perfilSelecionado) {
+    const user = db.usuarios.find(u => u.usuario === usuario && u.senha === senha);
+    if (user) {
+      sessao.perfil = user.perfil;
+      sessao.nome = user.nome;
+      sessao.clienteNome = user.nome;
+      return true;
+    }
+    if (perfilSelecionado === "cliente" && usuario.trim() !== "") {
+      sessao.perfil = "cliente";
+      sessao.nome = usuario;
+      sessao.clienteNome = usuario;
+      return true;
+    }
+    return false;
+  }
+
+  document.getElementById("btnLogin")?.addEventListener("click", () => {
+    const usuario = document.getElementById("loginUser").value.trim();
+    const senha = document.getElementById("loginPass").value;
+    const perfil = document.getElementById("perfilSelect").value;
+    if (fazerLogin(usuario, senha, perfil)) {
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("app").style.display = "flex";
+      currentSub = (sessao.perfil === "admin") ? "dashboard" : (sessao.perfil === "garcom" ? "pedidos" : (sessao.perfil === "cozinha" ? "producao" : "cardapio"));
+      renderApp();
+    } else alert("Credenciais inválidas.\nCliente: digite o nome e selecione 'Cliente'.");
+  });
+
+  document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    sessao = { perfil: null, nome: null, clienteNome: null };
+    carrinhoCliente = [];
+    document.getElementById("app").style.display = "none";
+    document.getElementById("loginContainer").style.display = "flex";
+    document.getElementById("loginUser").value = "";
+    document.getElementById("loginPass").value = "";
+  });
+
+  window.addEventListener("load", () => {
+    carregarDB();
+    if (!db.produtos.length) inicializarDemo();
+    setTimeout(() => {
+      const splash = document.getElementById("splash");
+      splash.style.opacity = "0";
+      setTimeout(() => { splash.style.display = "none"; document.getElementById("loginContainer").style.display = "flex"; }, 400);
+    }, 1500);
+  });
+</script>
+</body>
+</html>
